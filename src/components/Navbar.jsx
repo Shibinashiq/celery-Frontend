@@ -39,7 +39,7 @@ function Navbar() {
     <div className="min-h-[100vh]">
       <NextNavbar shouldHideOnScroll>
         <NavbarBrand>
-          <p className="font-bold text-inherit">LACCO</p>
+          <p className="font-bold text-inherit">AQUA INDIA</p>
         </NavbarBrand>
         <NavbarContent>
           <div className="flex justify-between items-center w-full">
@@ -49,16 +49,8 @@ function Navbar() {
                   Home
                 </Link>
               </NavbarItem>
-              <NavbarItem>
-                <Link href="#" aria-current="page">
-                  Customers
-                </Link>
-              </NavbarItem>
-              <NavbarItem>
-                <Link color="foreground" href="#">
-                  Integrations
-                </Link>
-              </NavbarItem>
+              
+             
             </div>
             <div className="flex gap-4 items-center">
               <NavbarItem className="hidden lg:flex">

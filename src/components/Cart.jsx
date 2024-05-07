@@ -7,7 +7,6 @@ import {
   Button,
   Image as NextUIImage,
 } from "@nextui-org/react";
-import axios from "axios";
 import useAxios from "../axios";
 import { useSelector } from "react-redux";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -31,6 +30,7 @@ export default function Cart() {
         setCartItems(cartItemsWithProductId);
       } catch (error) {
         console.error("Error fetching cart items:", error);
+        window.alert("Error fetching cart items");
       }
     };
 
@@ -46,6 +46,46 @@ export default function Cart() {
     setModalOpen(false);
   };
 
+  const handleIncrement = async (productId) => {
+    console.log(productId);
+    try {
+      await axiosinstance.post("User/update-cart/", {
+        product_id: productId,
+        action: 'increment',
+      });
+      fetchCartItems();
+    } catch (error) {
+      console.error("Error incrementing cart item:", error);
+      window.alert("Not Enough Quantity Available stay with us we will inform soon");
+    }
+  };
+
+  const handleDecrement = async (productId) => {
+    try {
+      await axiosinstance.post("User/update-cart/", {
+        product_id: productId,
+        action: 'decrement',
+      });
+      fetchCartItems();
+    } catch (error) {
+      console.error("Error decrementing cart item:", error);
+      window.alert("Minimum Quantity One");
+    }
+  };
+
+  const fetchCartItems = async () => {
+    try {
+      const response = await axiosinstance.get(`User/cart-items/${userId}/`);
+      const cartItemsWithProductId = response.data.map((cartItem) => ({
+        ...cartItem,
+        productId: cartItem.product,
+      }));
+      setCartItems(cartItemsWithProductId);
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+      window.alert("Error fetching cart items");
+    }
+  };
 
   const handleCheckout = async () => {
     try {
@@ -58,10 +98,15 @@ export default function Cart() {
       console.log("Checkout successful");
 
       const doc = new jsPDF();
+      doc.setFontSize(12);
+      doc.text("Invoice", 10, 10);
+
       cartItems.forEach((item, index) => {
-        doc.text(`Product Name: ${item.product_name}`, 10, index * 10 + 10);
-        doc.text(`Price: ${item.price}`, 10, index * 10 + 20);
+        doc.text(`Product Name: ${item.product_name}`, 10, index * 30 + 30);
+        doc.text(`Amount: ${item.price}`, 10, index * 30 + 40);
       });
+
+      doc.text(`Total Price: ${cartItems.reduce((total, item) => total + item.price, 0)}`, 10, (cartItems.length + 1) * 30 + 30);
       doc.save('invoice.pdf'); 
 
       setTimeout(() => {
@@ -69,49 +114,60 @@ export default function Cart() {
       });
     } catch (error) {
       console.error("Error during checkout:", error);
+      window.alert("Error during checkout");
+    }
+  };
+
+  const handleDeleteCartItem = async (productId) => {
+    try {
+      await axiosinstance.post("User/delete-cart-item/", {
+        product_id: productId,
+      });
+      // Refresh cart items after successful deletion
+      fetchCartItems();
+    } catch (error) {
+      console.error("Error deleting cart item:", error);
+      window.alert("Error deleting cart item");
     }
   };
 
   return (
     <div>
-
       {cartItems.length === 0 ? (
         <div className="justify-center items-center flex m-52">
           <h1 className="text-xl text-red-50">Cart is empty</h1>
         </div>
       ) : (
         <div>
-          <div className="gap-2 grid grid-cols-2 sm:grid-cols-4">
+          <div className="gap-10 grid grid-cols-2 sm:grid-cols-4">
             {cartItems.map((item, index) => (
-              <div key={index} onClick={() => openModal(item)}>
+              <div key={index} onClick={() => openModal(item)} className="flex flex-col items-center">
                 <NextUIImage
                   shadow="sm"
                   radius="lg"
-                  width="100%"
+                  width="140px"
                   alt={item.quantity}
-                  className="w-full object-cover h-[140px]"
+                  className="object-cover h-44"
                   src={`http://localhost:8000${item.product_image}`}
                 />
                 <p>{item.product_name}</p>
                 <p className="text-default-500">{item.price}</p>
-                <div className="flex flex-row justify-between">
-                  <div className="flex flex-row gap-6">
-                    <button onClick={() => handleIncrement(item.product)}>
-                      <Plus />
-                    </button>
-                    <p className="text-default-500">{item.quantity}</p>
-                    <button onClick={() => handleDecrement(item.product)}>
-                      <Minus />
-                    </button>
-                  </div>
-                  <div>
-                    <Trash2 onClick={() => handleDeleteCartItem(item.product)} />
-                  </div>
+                <div className="flex flex-row justify-between w-32">
+                  <button onClick={() => handleDecrement(item.productId)}>
+                    <Minus />
+                  </button>
+                  <p className="text-default-500">{item.quantity}</p>
+                  <button onClick={() => handleIncrement(item.productId)}>
+                    <Plus />
+                  </button>
+                </div>
+                <div className="mr--10">
+                  <Trash2 className="w-5 cursor-pointer" onClick={() => handleDeleteCartItem(item.productId)} />
                 </div>
               </div>
             ))}
           </div>
-          <div  className="fixed bottom-12 right-10 ml-5 ">
+          <div className="fixed bottom-12 right-10 ml-5">
             <Button auto onClick={handleCheckout}>Checkout</Button>
           </div>
         </div>

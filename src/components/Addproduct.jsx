@@ -13,10 +13,10 @@ export default function AddProduct() {
     description: "",
     price: "",
     quantity_available: "",
-    image: null, // Initialize image state
+    image: null, 
   });
 
-  const [image, setImage] = useState(null); // Define image state
+  const [image, setImage] = useState(null); 
 
   const handleOpen = () => {
     onOpen();
@@ -47,6 +47,7 @@ export default function AddProduct() {
       if  (response.status === 200 || response.status === 201) {
         console.log("Product added successfully");
         onClose(); // Close the modal
+        
         setFormData({ // Reset form data
           title: "",
           description: "",

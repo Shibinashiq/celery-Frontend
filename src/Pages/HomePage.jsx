@@ -1,10 +1,18 @@
-
 import React, { useEffect, useState } from "react";
-import {Card, CardHeader, CardBody, CardFooter, Image, Button} from "@nextui-org/react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Image,
+  Button,
+} from "@nextui-org/react";
 import useAxios from "../axios";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const axiosInstance = useAxios();
 
   useEffect(() => {
@@ -13,20 +21,29 @@ export default function HomePage() {
         const response = await axiosInstance.get("Main/showproducts/");
         setProducts(response.data);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        window.alert("Error fetching products:");
       }
     };
 
     fetchProducts();
   }, []);
+
+  const openModal = (product) => {
+    setSelectedProduct(product);
+  };
   const addToCart = (product_id) => {
     axiosInstance.post("User/add-to-cart/", { product_id })
       .then((response) => {
-        console.log("Product added to cart:", response.data);
+        // window.alert("Product added to cart");
       })
       .catch((error) => {
-        console.error("Error adding product to cart:", error);
+        window.alert("The product is already exist");
       });
+  };
+
+
+  const closeModal = () => {
+    setSelectedProduct(null);
   };
 
   return (
@@ -43,6 +60,15 @@ export default function HomePage() {
               <p className="text-tiny text-white/60 uppercase font-bold">
                 {product.title}
               </p>
+              <Button
+                variant="light"
+                size="sm"
+                onClick={() => openModal(product)}
+                className="text-white font-medium text-small cursor-pointer"
+                auto
+              >
+                View
+              </Button>
               <Button variant="light" size="sm"
                 onClick={() => addToCart(product.id)} 
                 className="text-white font-medium text-small cursor-pointer"
@@ -60,7 +86,34 @@ export default function HomePage() {
           </Card>
         ))}
       </div>
+      {selectedProduct && (
+        <Modal
+          isOpen={selectedProduct !== null}
+          onOpenChange={closeModal}
+          backdrop="opaque"
+          className="dark text-white"
+        >
+          <ModalContent >
+            <ModalHeader>Product Details</ModalHeader>
+            <ModalBody>
+              <Image
+                removeWrapper
+                alt={selectedProduct.title}
+                className="w-full h-auto object-cover"
+                src={selectedProduct.image}
+              />
+              <p>{selectedProduct.title}</p>
+              <p>{selectedProduct.description}</p>
+              <p>Price: {selectedProduct.price}</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="foreground" onClick={closeModal}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
     </div>
-
   );
 }

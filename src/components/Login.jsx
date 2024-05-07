@@ -45,11 +45,11 @@ export default function Login() {
           navigate("/"); 
         }
       } else {
-        console.error("Login failed:", data);
+        window.alert("Login failed:");
         dispatch(loginFailure(data.error));
       }
     } catch (error) {
-      console.error("Error occurred while logging in:", error);
+      window.alert("Error occurred while logging in:");
     }
   };
 
